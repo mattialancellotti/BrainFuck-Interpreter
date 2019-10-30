@@ -7,21 +7,39 @@
 int main(const int argc, const char * const * const argv) {
 	struct settings *settings_f;
 	int *buf;
-	//int ptr=0;
+	int ptr=0, tmp;
 
 	init(&buf, &settings_f);
 	settings_f = handle_args(argc, argv);
-	//analyzer(code_tmp, buf, ptr);
-	//show_buf(buf);
 
+
+
+	if (settings_f->flags&1)
+		print_console_version();
+
+	if (settings_f->flags&2)
+		print_console_help();
+
+	print_console_errs((tmp = check_errs(settings_f->brainfuck_code)));
+        if (tmp || settings_f->flags&32)
+		goto exit;
+	if (settings_f->flags&4)
+		print_console_warn(check_warns(settings_f->brainfuck_code));
+
+
+	interpreter(settings_f->brainfuck_code, buf, ptr);
+	show_buf(buf);
+
+exit:
+	xfree_sett(&settings_f);
 	free(buf);
 	return 0;
 }
 
 void init(int **buf, struct settings **settings_f) {
-	*buf = malloc(sizeof(int)*BUFFER);
-	*buf = memset(buf, 0, BUFFER);
-	*settings_f = NULL;
+	(*buf) = malloc(sizeof(int)*BUFFER);
+	memset(*buf, 0, BUFFER);
+	(*settings_f) = NULL;
 }
 
 struct settings *sett_new(const char *brainfuck_code, const char *config_file, int flags) {
@@ -34,8 +52,8 @@ struct settings *sett_new(const char *brainfuck_code, const char *config_file, i
 
 struct settings *handle_args(const int argc, const char * const * const argv) {
 	struct settings *new;
-	const char *code_tmp, *config_file;
-	int flags=0;
+	const char *code_tmp = NULL, *config_file = NULL;
+	int flags=4;
 
 	for (int i=1; i<argc; i++)
 		if (argv[i][0] == '-') {
@@ -43,21 +61,21 @@ struct settings *handle_args(const int argc, const char * const * const argv) {
 				if (!strcmp(argv[i]+2, "code"))
 					code_tmp = argv[++i];
 				else if (!strcmp(argv[i]+2, "debug"))
-					flags |= 1;
-				else if (!strcmp(argv[i]+2, "colors"))
-					flags |= (!strcmp(argv[++i], "true") ? 2 : 0);
+					flags |= 8;
 				else if (!strcmp(argv[i]+2, "configuration-file"))
 					config_file = argv[++i];
 				else if (!strcmp(argv[i]+2, "Warnings-on"))
 					flags |= 4;
 				else if (!strcmp(argv[i]+2, "Warnings-off"))
 					flags ^= 4;
-				else if (!strcmp(argv[i]+2, "Errors-on"))
-					flags |= 8;
-				else if (!strcmp(argv[i]+2, "Errors-off"))
-					flags ^= 8;
+				else if (!strcmp(argv[i]+2, "help"))
+					flags |= 2;
+				else if (!strcmp(argv[i]+2, "version"))
+					flags |= 1;
 				else {
-					;
+					flags |= 32;
+					print_console_errs(UNKNOWN_ARGS);
+					goto args_error;
 				}
 			} else {
 				switch(argv[i][1]) {
@@ -65,21 +83,26 @@ struct settings *handle_args(const int argc, const char * const * const argv) {
 					code_tmp = argv[++i];
 					break;
 				case 'd':
-					flags |= 1;
-					break;
-				case 'l':
-					flags |= (!strcmp(argv[++i], "true") ? 2 : 0);
+					flags |= 8;
 					break;
 				case 'i':
 					config_file = argv[++i];
 					break;
-				default:
-					//send_err(UNKNOWN_ARG, i);
+				case 'h':
+					flags |= 2;
 					break;
+				case 'v':
+					flags |= 1;
+					break;
+				default:
+					flags |= 32;
+					print_console_errs(UNKNOWN_ARGS);
+					goto args_error;
 				}
 			}
 		}
 
+args_error:
 	return (new = sett_new(code_tmp, config_file, flags));
 }
 
@@ -101,22 +124,14 @@ void xfree_loop(struct loop_t **to_free) {
 }
 
 void xfree_sett(struct settings **to_free) {
-	if (*to_free) {
-		if ((*to_free)->brainfuck_code)
-			free((*to_free)->brainfuck_code);
-
-		if ((*to_free)->configuration_file)
-			free((*to_free)->configuration_file);
-
+	if (*to_free)
 		free(*to_free);
-	}
 }
 
-void analyzer(const char *code, int *buf, int ptr) {
+void interpreter(const char *code, int *buf, int ptr) {
 	struct loop_t *head = NULL;
-	int i=0;
 
-	while(code[i]) {
+	for (int i=0; code[i]; i++)
 		switch(code[i]) {
 		case '+':
 			buf[ptr]++;
@@ -126,23 +141,21 @@ void analyzer(const char *code, int *buf, int ptr) {
 			break;
 		case '>':
 			if (ptr == BUFFER-1)
-				//send_warns(MOVING_OUT_BUFFER, i);
 				ptr = 0;
 			else
 				ptr++;
 			break;
 		case '<':
 			if (ptr == 0)
-				//send_warns(MOVING_OUT_BUFFER, i);
 				ptr = BUFFER-1;
 			else
 				ptr--;
 			break;
 		case '.':
-			printf("%d\n", buf[ptr]);
+			printf("[@] Current position %d: %d\n", i, buf[ptr]);
 			break;
 		case ',':
-			printf("+");
+			printf("[@] Input: ");
 			buf[ptr] = getchar();
 			break;
 		case '[':
@@ -168,29 +181,25 @@ void analyzer(const char *code, int *buf, int ptr) {
 						xfree_loop(&head);
 				else
 				i = head->start_position;
-			else //send_err(NO_START_LOOP, i);
+			else 
 				return;
 			break;
 		default:
-			//send_err(UNKNOWN_KEYWORD, i)
+			//skip
 			break;
-		}
-		i++;
-	}
-
-	if (head) {
-		//send_err(NO_END_LOOP, i);
-		return;
-	}
+		} 
 }
 
-void show_buf(int *buf) {
+void show_buf(const int *buf) {
 	for (int i=0; i<BUFFER; i++)
 		printf("%3d ", buf[i]);
 	printf("\n");
 }
 
 int check_errs(const char *code) {
+	if (!code)
+		return -1;
+
 	int count_of_loops=0;
 	for (int i=0; code[i]; i++)
 		if (code[i] == '[')
@@ -204,11 +213,77 @@ int check_errs(const char *code) {
 }
 
 int check_warns(const char *code) {
-	int movement=0;
-	for (int i=0; code[i]; i++)
+	if (!code)
+		return -1;
+
+	int movement=0, flag;
+	for (int i=0; code[i]; i++) {
 		if (code[i] == '>')
 			movement++;
 		else if (code[i] == '<')
 			movement--;
-	return (!movement ? 0 : MOVING_OUT_OF_BUFFER);
+
+		if (movement < 0 || movement > BUFFER)
+			return MOVING_OUT_OF_BUFFER;
+	}
+
+	return 0; 
+}
+
+#ifndef COLORS
+	#define PRINT_E(X) printf(X, "", "", "");
+#else
+	#define PRINT_E(X) printf(X, BOLD, RED, NO_COLORS);
+	#define PRINT_W(X) printf(X, BOLD, YELLOW, NO_COLORS);
+#endif
+
+void print_console_warn(const int code) {
+	switch(code) {
+	case 1:
+		PRINT_W("%s[MOVING_OUT_OF_BUFFER] %sWarning%s: you are trying to the buffer, resetting pointer.\n");
+		break;
+	default:
+		break;
+	}
+}
+
+void print_console_errs(const int code) {
+	switch(code) {
+	case 1:
+		PRINT_E("%s[NO_END_LOOP] %sError%s: no end of loop found.\n");
+		break;
+	case 2:
+		PRINT_E("%s[NO_START_LOPP] %sError%s: no start of loop found.\n");
+		break;
+	case 3:
+		PRINT_E("%s[UNKNOWN_KEYWORD] %sError%s: keyword not found.\n");
+		break;
+	case 10:
+		PRINT_E("%s[UNKNOWN_ARGS] %sError%s: argument not found.\n");
+		break;
+	default:
+		break;
+	}
+}
+
+void print_console_help(void) {
+	printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
+	printf("\t-c, --code:     accept a parameter for the code ex: \"++>>+[]\"\n");
+	printf("\t--Warnings-off: disable warnings\n");
+	printf("\t--Warnings-on:  enable warnings\n");
+	printf("\t-h, --help :    display this message\n");
+	printf("\t-v, --version:  print the version of the progrma\n");
+	printf("\n\n~~~~ BRAINFUCK LANGUAGE ~~~~\n");
+	printf("\t'+' increment by one the current position pointed\n");
+	printf("\t'-' decrement by one the current position pointed\n");
+	printf("\t'>' move the pointer to the next position\n");
+	printf("\t'<' move the pointer to the previous position\n");
+	printf("\t'.' print the number stored in the current position pointed\n");
+	printf("\t',' accept an input\n");
+	printf("\t'[' while the value of the position pointed is not zero\n");
+	printf("\t']' end of the loop\n\n");
+}
+
+void print_console_version(void) {
+	printf("BrainFuck interpreter, version %.1f, date of release %s\n", VERSION, DATE_OF_RELEASE);
 }
