@@ -6,7 +6,7 @@
 
 int main(const int argc, const char * const * const argv) {
 	struct settings *settings_f;
-	int *buf;
+	int *buf = NULL;
 	int ptr=0, tmp;
 
 	init(&buf, &settings_f);
@@ -28,7 +28,7 @@ int main(const int argc, const char * const * const argv) {
 
 
 	interpreter(settings_f->brainfuck_code, buf, ptr);
-	show_buf(buf);
+//	show_buf(buf);
 
 exit:
 	xfree_sett(&settings_f);
