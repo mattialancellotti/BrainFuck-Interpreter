@@ -6,13 +6,15 @@
 
 int main(const int argc, const char * const * const argv) {
 	struct settings *settings_f;
-	int *buf = NULL;
+	int *buf;
 	int ptr=0, tmp;
 
 	init(&buf, &settings_f);
 	settings_f = handle_args(argc, argv);
 
 
+	if (settings_f->flags&32)
+		goto exit;
 
 	if (settings_f->flags&1)
 		print_console_version();
@@ -20,15 +22,27 @@ int main(const int argc, const char * const * const argv) {
 	if (settings_f->flags&2)
 		print_console_help();
 
-	print_console_errs((tmp = check_errs(settings_f->brainfuck_code)));
-        if (tmp || settings_f->flags&32)
-		goto exit;
-	if (settings_f->flags&4)
-		print_console_warn(check_warns(settings_f->brainfuck_code));
+	if (settings_f->flags&4 && settings_f->flags&8)
+		print_console_errs(INCOMPATIBLE_ARGS);
 
 
-	interpreter(settings_f->brainfuck_code, buf, ptr);
-//	show_buf(buf);
+	if (settings_f->flags&16) {
+		if (settings_f->flags&8)
+			//debugging mode
+			;
+		else {
+        		if ((tmp = check_errs(settings_f->brainfuck_code))) {
+				print_console_errs(tmp);
+				goto exit;
+			}
+
+			if (settings_f->flags&4)
+				print_console_warn(check_warns(settings_f->brainfuck_code));
+	
+			interpreter(settings_f->brainfuck_code, buf, ptr);
+			show_buf(buf);
+		}
+	}
 
 exit:
 	xfree_sett(&settings_f);
@@ -58,11 +72,13 @@ struct settings *handle_args(const int argc, const char * const * const argv) {
 	for (int i=1; i<argc; i++)
 		if (argv[i][0] == '-') {
 			if (argv[i][1] == '-') {
-				if (!strcmp(argv[i]+2, "code"))
+				if (!strcmp(argv[i]+2, "code")) {
+					flags |= 16;
 					code_tmp = argv[++i];
-				else if (!strcmp(argv[i]+2, "debug"))
+				} else if (!strcmp(argv[i]+2, "debug")) {
 					flags |= 8;
-				else if (!strcmp(argv[i]+2, "configuration-file"))
+					flags ^= 4;
+				} else if (!strcmp(argv[i]+2, "configuration-file"))
 					config_file = argv[++i];
 				else if (!strcmp(argv[i]+2, "Warnings-on"))
 					flags |= 4;
@@ -81,9 +97,11 @@ struct settings *handle_args(const int argc, const char * const * const argv) {
 				switch(argv[i][1]) {
 				case 'c':
 					code_tmp = argv[++i];
+					flags |= 16;
 					break;
 				case 'd':
 					flags |= 8;
+					flags ^= 4;
 					break;
 				case 'i':
 					config_file = argv[++i];
@@ -197,9 +215,6 @@ void show_buf(const int *buf) {
 }
 
 int check_errs(const char *code) {
-	if (!code)
-		return -1;
-
 	int count_of_loops=0;
 	for (int i=0; code[i]; i++)
 		if (code[i] == '[')
@@ -213,9 +228,6 @@ int check_errs(const char *code) {
 }
 
 int check_warns(const char *code) {
-	if (!code)
-		return -1;
-
 	int movement=0, flag;
 	for (int i=0; code[i]; i++) {
 		if (code[i] == '>')
@@ -260,6 +272,9 @@ void print_console_errs(const int code) {
 		break;
 	case 10:
 		PRINT_E("%s[UNKNOWN_ARGS] %sError%s: argument not found.\n");
+		break;
+	case 11:
+		PRINT_E("%s[INCOMPATIBLE_ARGS] %sError%s: you can't check warnings in debugging mode.\n");
 		break;
 	default:
 		break;
