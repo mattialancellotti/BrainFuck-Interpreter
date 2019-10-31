@@ -206,6 +206,7 @@ void interpreter(const char *code, int *buf, int ptr) {
 			//skip
 			break;
 		} 
+
 }
 
 void show_buf(const int *buf) {
