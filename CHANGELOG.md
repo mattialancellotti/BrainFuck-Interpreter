@@ -9,3 +9,5 @@ BRAINFUCK INTERPRETER
 
 + **VERSION 1.2 [ 2019 - 11 - 03 ]**
 	- Bug fixes, errors handling using flags and not enum
++ **VERSION 2.0 [ 2019 - 12 - 19 ]**
+  - Multiple files and Makefile
