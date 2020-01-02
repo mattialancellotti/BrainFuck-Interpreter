@@ -195,7 +195,7 @@ void print_console_help(void) {
 	printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
 	printf("\t-c, --code    : accept a parameter for the code ex (add the quotes): \"++>>+[]\"\n");
 	printf("\t-h, --help    : display this message\n");
-	printf("\t-v, --version : print the version of the progrma\n");
+	printf("\t-v, --version : print the version of the program\n");
 	printf("\t--Warnings-off: disable warnings\n");
 	printf("\t--Warnings-on : enable warnings\n");
 	printf("\n\n~~~~ BRAINFUCK LANGUAGE ~~~~\n");

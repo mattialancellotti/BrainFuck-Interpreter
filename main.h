@@ -3,8 +3,8 @@
 
 #include "args.h"
 
-#define VERSION 2.0
-#define DATE_OF_RELEASE "2019/12/19"
+#define VERSION 3.0
+#define DATE_OF_RELEASE "2020/01/02"
 #define BUFFER 30000
 
 #ifdef COLORS
