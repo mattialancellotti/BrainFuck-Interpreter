@@ -5,7 +5,7 @@
 
 #define VERSION 2.0
 #define DATE_OF_RELEASE "2019/12/19"
-#define BUFFER 50
+#define BUFFER 30000
 
 #ifdef COLORS
 #define NO_COLORS "\033[0m"
@@ -14,16 +14,20 @@
 #define YELLOW "\033[33m"
 #endif
 
+#ifndef COLORS
+	#define PRINT_E(X) printf(X, "", "", "");
+  #define PRINT_W(X) printf(X, "", "", "");
+#else
+	#define PRINT_E(X) printf(X, BOLD, RED, NO_COLORS);
+	#define PRINT_W(X) printf(X, BOLD, YELLOW, NO_COLORS);
+#endif
+
 //CODE_ERRORS_WARNS
 #define NO_END_LOOP     1
 #define NO_START_LOOP   2
 #define UNKNOWN_KEYWORD 4
-#define MOVING_OUT_OF_BUFFER 2
+#define MOVING_OUT_OF_BUFFER 8
 
-struct loop_t {
-	struct loop_t *next, *prev;
-	unsigned start_position, end_position;
-};
 
 //main
 void init(int **, struct settings **);
@@ -38,5 +42,6 @@ void show_buf(const int *);
 void interpreter(const char *, int *, int);
 int check_errs(const char *);
 int check_warns(const char *);
+unsigned loop_counter(const char *); 
 
 #endif

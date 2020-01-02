@@ -3,6 +3,8 @@
 #include "main.h"
 #include "mem.h"
 
+static int skip(const char *, int);
+
 int main(const int argc, const char * const * const argv) {
 	struct settings *settings_f = NULL;
 	int *buf = NULL;
@@ -37,11 +39,12 @@ int main(const int argc, const char * const * const argv) {
 			goto exit;
 
 		interpreter(settings_f->brainfuck_code, buf, ptr);
-		show_buf(buf);
+		//show_buf(buf);
 	}
 
 exit:
-	xfree_sett(&settings_f);
+	xfree_sett(settings_f);
+  settings_f = NULL;
 	free(buf);
   buf = NULL;
 	return 0;
@@ -54,7 +57,10 @@ void init(int **buf, struct settings **settings_f) {
 }
 
 void interpreter(const char *code, int *buf, int ptr) {
-	struct loop_t *head = NULL;
+  const unsigned len = loop_counter(code)*3; 
+  unsigned loop_index = 0;
+  int loops[len];
+  memset(loops, 0, len*sizeof(int));
 
 	for (int i=0; code[i]; i++)
 		switch(code[i]) {
@@ -77,43 +83,49 @@ void interpreter(const char *code, int *buf, int ptr) {
 				ptr--;
 			break;
 		case '.':
-			printf("[@] Current position %d: %d\n", i, buf[ptr]);
+			printf("%c", buf[ptr]);
 			break;
 		case ',':
 			printf("[@] Input: ");
 			buf[ptr] = getchar();
 			break;
 		case '[':
+      //if the current value is equal to zero then try to find the end of the loop
 			if (!buf[ptr])
-				while(buf[i] != ']')	
-					i++;
-			else 
-				if (!head)
-					head = push(i, NULL, NULL);
-				else {
-					head->next = push(i, NULL, head);
-					head = head->next;
-				}
+          i = skip(code, i+1);
+      else { //else jump to the next free position and set it 
+        if (loops[loop_index])
+          loop_index+=2;
+        loops[loop_index] = i;
+      }
+
 			break;
 		case ']':
-			if (head)
-				if (!buf[ptr])
-					if (head->prev) {
-						head = head->prev;
-						xfree_loop(&(head->next));
-						head->next = NULL;
-					} else
-						xfree_loop(&head);
-				else
-				i = head->start_position;
-			else 
-				return;
-			break;
+      if (buf[ptr]) {
+        if (!loops[loop_index+1])
+          loops[loop_index+1] = i;
+        i = loops[loop_index];
+      } else {
+        loops[loop_index] = 0;
+        loops[loop_index+1] = 0;
+        if (loop_index)
+          loop_index-=2;
+      }
+        
+		  break;
 		default:
-			//skip
 			break;
 		} 
+}
 
+static int skip(const char *code, int i) {
+  for (int loop_count = 1; loop_count; i++)
+    if (code[i] == '[')
+      loop_count++;
+    else if (code[i] == ']')
+      loop_count--;
+
+  return i-1;
 }
 
 void show_buf(const int *buf) {
@@ -132,7 +144,12 @@ int check_errs(const char *code) {
 		else if (code[i] != '+' && code[i] != '-' && code[i] != '<' && code[i] != '>' && code[i] != '.' && code[i] != ',' && code[i] != '[' && code[i] != ']')
 			flags|=UNKNOWN_KEYWORD;
 
-	return (!count_of_loops ? flags : (count_of_loops > 0 ? (flags|=NO_START_LOOP) : (flags|=NO_END_LOOP)));
+  if (count_of_loops > 0)
+    return (flags|=NO_END_LOOP);
+  else if (count_of_loops < 0)
+    return (flags|=NO_START_LOOP);
+  else
+    return flags;
 }
 
 int check_warns(const char *code) {
@@ -149,14 +166,6 @@ int check_warns(const char *code) {
 
 	return flags; 
 }
-
-#ifndef COLORS
-	#define PRINT_E(X) printf(X, "", "", "");
-  #define PRINT_W(X) printf(X, "", "", "");
-#else
-	#define PRINT_E(X) printf(X, BOLD, RED, NO_COLORS);
-	#define PRINT_W(X) printf(X, BOLD, YELLOW, NO_COLORS);
-#endif
 
 void print_code_warn_errs(const int errs_code, const int warns_code) {
 	if (warns_code&1)
@@ -202,4 +211,20 @@ void print_console_help(void) {
 
 void print_console_version(void) {
 	printf("BrainFuck interpreter, version %.1f, date of release %s\n", VERSION, DATE_OF_RELEASE);
+}
+
+unsigned loop_counter(const char *code) {
+  unsigned loops = 0, max_loops=0;
+
+  for (int i=0; code[i]; i++) {
+    if (code[i] == '[')
+      loops++;
+    else if (code[i] == ']') {
+      if (loops > max_loops)
+        max_loops = loops;
+      loops--;
+    }
+  }
+
+  return max_loops;
 }
