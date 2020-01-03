@@ -50,10 +50,9 @@ exit:
 	return 0;
 }
 
-void init(int **buf, struct settings **settings_f) {
+void init(int **buf) {
 	(*buf) = malloc(sizeof(int)*BUFFER);
 	memset(*buf, 0, BUFFER);
-	(*settings_f) = NULL;
 }
 
 void interpreter(const char *code, int *buf, int ptr) {
