@@ -15,7 +15,7 @@ int main(const int argc, const char * const * const argv) {
 		goto exit;
 	}
 
-	init(&buf, &settings_f);
+	init(&buf);
 	settings_f = handle_args(argc, argv);
 
 	if (settings_f->args_errs_flags) {
