@@ -1,12 +1,19 @@
-BRAINF*CK INTERPRETER
+BRAIN F*CK INTERPRETER
 --------------------
 
-* To implement
-  + Optimiser: ['<>', '+-']
+* **VERSION 4.0**
+  * *LANGUAGE*
+    + *Features:* [ 'Comments                '  ]
+  * *COMPILER*
+    + *Features:* [ 'Optimizer               ',
+                  \ 'Cleaner                 ', 
+                  \ 'Errors/Warnings handling',
+                  \ 'UI interface            '  ]
+  * *ARGUMENTS*
+    + *Features:* [ 'Easier                  '  ]
+  
+* **VERSION 5.0**
   + Possibility to choose the number of cells
   + Number of bit per cells
-  + Cleaner of characters: [' ', '\n', '\t']
-  + Comments
-
-* To solve
-  + Some problems seems to work some other no
+  + Conversion to other languages
+  + Documentation of brainfuck
