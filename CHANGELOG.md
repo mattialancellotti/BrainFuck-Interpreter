@@ -16,8 +16,18 @@ BRAINFUCK INTERPRETER
   - Multiple files and Makefile
 
 + **VERSION 3.0 [ 2020 - 01 - 02 ]**
-  - Bug fixes and optimization
+  - Bug fixes
+  - Optimization
 
 + **VERSION 3.1 [ 2020 - 01 - 03 ]**
   - Documentation
   - Having ideas
+
++ **VERSION 3.2 [ 2020 - 01 - 10 ]**
+  - File input
+
++ **VERSION 3.3 [ 2020 - 01 - 11 ]**
+  - Bug fixes
+
++ **VERSION 3.4 [ 2020 - 01 - 11 ]**
+  - New way to handle args
