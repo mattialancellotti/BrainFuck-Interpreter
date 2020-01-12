@@ -1,5 +1,5 @@
 objects = mem.o args.o main.o
-args = -Wall -Wpedantic -Wextra -ggdb
+args = -Wall -Wpedantic -Wextra -ggdb -O3
 
 BrainFuckInterpreter : $(objects)
 	cc -o BrainFuckInterpreter $(objects)
