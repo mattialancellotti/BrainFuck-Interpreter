@@ -3,61 +3,24 @@
 
 #include "args.h"
 
-#define VERSION 3.1
-#define DATE_OF_RELEASE "2020/01/02"
-#define BUFFER 30000
-
-#ifdef COLORS
-  #define NO_COLORS "\033[0m"
-  #define BOLD "\033[1m"
-  #define RED "\033[31m"
-  #define YELLOW "\033[33m"
-#endif
-
-#ifndef COLORS
-	#define PRINT_E(X) printf(X, "", "", "");
-  #define PRINT_W(X) printf(X, "", "", "");
-#else
-	#define PRINT_E(X) printf(X, BOLD, RED, NO_COLORS);
-	#define PRINT_W(X) printf(X, BOLD, YELLOW, NO_COLORS);
-#endif
-
-//CODE_ERRORS {{
-#define NO_END_LOOP     1
-#define NO_START_LOOP   2
-#define UNKNOWN_KEYWORD 4
-// }}
+#define VERSION 3.4
+#define DATE_OF_RELEASE "2020/01/12"
+#define BUFFER 10000
 
 //CODE WARNINGS {{
-#define INFINITE_LOOP        1
-#define MOVING_OUT_OF_BUFFER 8
+#define MOVING_OUT_OF_BUFFER 1
 // }}
 
-//Notes:
-//  [DELETE] print_code_warn_errs(const int, const int) ; print_args_warn_errs(const int)
-//      | Not needed since there will be an entire interface dedicated to write a pretty output
-//  [MODIFY] print_console_help(void);
-//      | New name 'help(void);' it will display only the explanation of the arguments of the program
-//  [MODIFY] print_console_version(void);
-//      | New anem 'version(void);'
-//  [MOVING][compiler/] interpreter(const char *, int *, int) ; 
-//                      check_errs(const char *)              ; 
-//                      check_warns(const char *)             ; 
-//                      loop_counter(const char *)
-//      | The main part of the program will be separated from the compiler/interpreter
-//    - CODE_ERRORS
-//    - CODE_WARNINGS
-//    - BUFFER
-//    
-//
-//main
-
-/*
- * Used to initialize the array passed by reference
- * @param $0 : the pointer to int to initialize
- * @return 
- */
-void init(int **);
+//CODE TOKENS {{
+#define RIGHT_ARROW '>'
+#define LEFT_ARROW  '<'
+#define INCREMENT   '+'
+#define DECREMENT   '-'
+#define INPUT       ','
+#define OUTPUT      '.'
+#define START_WHILE '['
+#define END_WHILE   ']'
+// }}
 
 /*
  * Used to interpret the flags passed and to notify the used if there are errors or warnings in the *code*
@@ -105,7 +68,7 @@ void show_buf(const int *);
  * @param $2 : the variable used as index for the buffer
  * @return
  */
-void interpreter(const char *, int *, int);
+void interpreter(const char *);
 
 /*
  * It checks if there are some errors like unknown instructions or non-ended loops or non-opened loops
@@ -127,5 +90,7 @@ int check_warns(const char *);
  * @return   : the number of loops
  */
 unsigned loop_counter(const char *); 
+
+char *bfile_reader(FILE *);
 
 #endif
