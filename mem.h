@@ -5,7 +5,7 @@
 
 #include "args.h"
 
-struct settings *sett_new(const char *, int, int);
+struct settings *sett_new(char *, int, int);
 void xfree_sett(struct settings *);
 
 #endif
