@@ -3,9 +3,11 @@
 
 struct settings *sett_new(char *file, int flags, int args_errs_flags) {
 	struct settings *new_struct = malloc(sizeof(struct settings));
+
   new_struct->finput = file;
 	new_struct->flags = flags;
 	new_struct->args_errs_flags = args_errs_flags;
+
 	return new_struct;
 }
 

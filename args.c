@@ -18,9 +18,6 @@ struct settings *handle_args(const int argc, char **argv) {
         case 'v':
           flags |= GET_VERSION;
           break;
-        case 's':
-          flags |= GET_STATS;
-          break;
         default:
           args_errs_flags = 1;
           break;

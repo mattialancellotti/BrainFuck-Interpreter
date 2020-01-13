@@ -3,13 +3,18 @@
 
 #include "args.h"
 
-#define VERSION 3.4
-#define DATE_OF_RELEASE "2020/01/12"
-#define BUFFER 10000
+#define VERSION 3.5
+#define DATE_OF_RELEASE "2020/01/13"
+#define BUFFER 30000
 
 //CODE WARNINGS {{
 #define MOVING_OUT_OF_BUFFER 1
 // }}
+//
+//CODE ERRORS {{
+#define NO_END_LOOOP  1
+#define NO_START_LOOP 2
+//}}
 
 //CODE TOKENS {{
 #define RIGHT_ARROW '>'
@@ -71,26 +76,18 @@ void show_buf(const int *);
 void interpreter(const char *);
 
 /*
- * It checks if there are some errors like unknown instructions or non-ended loops or non-opened loops
- * @param $0 : the brainfuck code
- * @return   : a list of flags which represents the errors
- */
-int check_errs(const char *);
-
-/*
- * It checks if the user should pay attentio at what he writes
- * @param $0 : the brainfuck code
- * @return   : a list of flags which represent the errors
- */
-int check_warns(const char *);
-
-/*
  * Used to count the maximun number of inner loops
  * @param $0 : the brainfuck code
  * @return   : the number of loops
  */
 unsigned loop_counter(const char *); 
 
+/*
+ * It checks if the user should pay attentio at what he writes
+ *
+ * @param $0 : the code
+ * @return   : code_t
+ */
 char *bfile_reader(FILE *);
 
 #endif

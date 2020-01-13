@@ -3,9 +3,8 @@
 #include "main.h"
 #include "mem.h"
 
-static int skip(const char *, int);
-
 int main(const int argc, char **argv) {
+  FILE *f = NULL;
 	struct settings *settings_f = NULL;
   char *code = NULL;
 
@@ -15,10 +14,6 @@ int main(const int argc, char **argv) {
 	}
 
 	settings_f = handle_args(argc, argv);
-
-  FILE *f = fopen(settings_f->finput, "r");
-  code = bfile_reader(f);
-  printf("%s\n", code);
 
 	if (settings_f->args_errs_flags) {
     printf("Errors during the handling of the arguments.. exiting.\n");
@@ -31,10 +26,20 @@ int main(const int argc, char **argv) {
 	if (settings_f->flags&2)
 		print_console_help();
 
+  if (!settings_f->finput)
+    goto clean;
+
+  f = fopen(settings_f->finput, "r");
+  code = bfile_reader(f);
+  if (!code)
+    goto clean;
+
+  printf("%s\n", code);
 	interpreter(code);
 
 clean:
-  fclose(f);
+  if (f)
+    fclose(f);
   xfree_sett(settings_f);
 
 exit:
@@ -45,80 +50,61 @@ exit:
 }
 
 void interpreter(const char *code_) {
-  const unsigned len = loop_counter(code_)*3, c_len = strlen(code_); 
+  const unsigned len = loop_counter(code_), c_len = strlen(code_); 
   register unsigned loop_index = 0;
-  int loops[len], c;
-  char buffer[BUFFER] = { 0 };
+  int loops[len];
   char code[c_len];
 
-  char *ptr = buffer;
+  char buffer[BUFFER] = { 0 };
+  register char *ptr = buffer;
 
-  memset(loops, 0, len*sizeof(int));
+  memset(loops, 0, len);
   memcpy(code, code_, c_len);
 
 	for (unsigned i=0; i<c_len; i++)
 		switch(code[i]) {
 		case '+':
       ++(*ptr);
-			break;
+      break;
 		case '-':
-			--(*ptr);
+      --(*ptr);
 			break;
 		case '>':
-			++ptr;
+      if (ptr == buffer+(BUFFER-1))
+        ptr = buffer;
+      else
+        ++ptr;
 			break;
 		case '<':
-			--ptr;
+      if (ptr == buffer)
+        ptr = buffer+(BUFFER-1);
+      else
+        --ptr;
 			break;
 		case '.':
       putchar(*ptr);
 			break;
 		case ',':
-			printf("[@] Input: ");
-			*ptr = (int)getchar();
-
-      while((c=getchar()) != '\n' && c != EOF) { }
+      *ptr = getchar();
 			break;
 		case '[':
-      //if the current value is equal to zero then try to find the end of the loop
-			if (*ptr == 0) {
-        if (loops[loop_index+1])
-          i = loops[loop_index+1];
-        else
-          i = skip(code, i+1);
-      } else { //else jump to the next free position and set it 
-        if (loops[loop_index])
-          loop_index+=2;
-        loops[loop_index] = i;
-      }
+      if (loops[loop_index])
+        ++loop_index;
+      loops[loop_index] = i;
 
 			break;
 		case ']':
-      if (*ptr) {
-        if (!loops[loop_index+1])
-          loops[loop_index+1] = i;
+      if (*ptr)
         i = loops[loop_index];
-      } else {
+      else {
         loops[loop_index] = 0;
-        loops[loop_index+1] = 0;
         if (loop_index)
-          loop_index-=2;
+          --loop_index;
       }
-        
 		  break;
 		default:
 			break;
 		} 
-}
-
-static int skip(const char *code, int i) {
-  for (int loop_count = 1; loop_count; ++i)
-    if (code[i] == '[')
-      ++loop_count;
-    else if (code[i] == ']')
-      --loop_count;
-
-  return i-1;
 }
 
 void show_buf(const int *buf) {
@@ -127,60 +113,6 @@ void show_buf(const int *buf) {
 
 	printf("\n");
 }
-
-/*
-int check_errs(const char *code) {
-	int count_of_loops=0, flags=0;
-	for (int i=0; code[i]; i++)
-		if (code[i] == '[')
-			count_of_loops++;
-		else if (code[i] == ']')
-			count_of_loops--;
-		else if (code[i] != '+' && code[i] != '-' && code[i] != '<' && code[i] != '>' && code[i] != '.' && code[i] != ',' && code[i] != '[' && code[i] != ']')
-			flags|=UNKNOWN_KEYWORD;
-
-  if (count_of_loops > 0)
-    return (flags|=NO_END_LOOP);
-  else if (count_of_loops < 0)
-    return (flags|=NO_START_LOOP);
-  else
-    return flags;
-}
-*/
-
-/*
-int check_warns(const char *code) {
-	int movement=0, flags=0;
-	for (int i=0; code[i]; i++) {
-		if (code[i] == '>')
-			movement++;
-		else if (code[i] == '<')
-			movement--;
-
-		if (movement < 0 || movement > BUFFER)
-			return flags|=MOVING_OUT_OF_BUFFER;
-	}
-
-	return flags; 
-}
-*/
-
-/*
-void print_code_warn_errs(const int errs_code, const int warns_code) {
-	if (warns_code&1)
-		if (warns_code&MOVING_OUT_OF_BUFFER)
-			printf("[MOVING_OUT_OF_BUFFER] Warning: you are trying to exit the buffer, resetting pointer.\n");
-
-	if (errs_code&NO_END_LOOP)
-		printf("[NO_END_LOOP] Error: no end of loop found.\n");
-
-	if (errs_code&NO_START_LOOP)
-		printf("[NO_START_LOOP] Error: no start of loop found.\n");
-
-	if (errs_code&UNKNOWN_KEYWORD)
-		printf("[UNKNOWN_KEYWORD] Error: keyword not found.\n");
-}
-*/
 
 void print_console_help(void) {
 	printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
@@ -224,69 +156,23 @@ char *bfile_reader(FILE *file) {
   char code[size];
   fseek(file, 0L, SEEK_SET);
 
-  unsigned buffer[BUFFER] = { 0 };
-  unsigned *ptr = buffer;
-
-  char *new_code;
-
-  int i = 0, jump = 0, loops = 0;
+  char *new_code = NULL;
+  int i = 0;
 
   char c;
-  if (file) {
-    while((c = fgetc(file)) != EOF) {
-      if (jump) {
-        if (c == START_WHILE)
-          ++loops;
-        else if (c == END_WHILE)
-          --loops;
-
-        if (!loops)
-          jump = 0;
-
-        continue;
-      }
-
-      switch(c) {
-        case LEFT_ARROW:
-          if (ptr != buffer)
-            --ptr;
-          else
-            ptr = buffer+(BUFFER-1);
-
-          break;
-        case RIGHT_ARROW:
-          if (ptr == buffer+(BUFFER-1))
-            ptr = buffer;
-          else
-            ++ptr;
-
-          break;
-        case INCREMENT:
-          ++(*ptr);
-          break;
-        case DECREMENT:
-          --(*ptr);
-          break;
-        case START_WHILE:
-          if (!i || (!*ptr && code[i-1] != ',')) {
-            jump = loops = 1;
-            continue;
-          }
-
-          break;
-        case END_WHILE:
-        case INPUT:
-        case OUTPUT:
-          break;
-        default:
-          continue;
-      }
-
+  if (file)
+    while((c = fgetc(file)) != EOF)
+      if (c == LEFT_ARROW || c == RIGHT_ARROW
+                          || c == INCREMENT
+                          || c == DECREMENT
+                          || c == START_WHILE
+                          || c == END_WHILE
+                          || c == INPUT
+                          || c == OUTPUT)
       code[i++] = c;
-    }
-  }
 
   code[i] = '\0';
+
   new_size = strlen(code);
   new_code = malloc(sizeof(char)*new_size);
 
