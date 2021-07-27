@@ -16,4 +16,3 @@ main.o : main.c main.h args.h mem.h
 .PHONY : clean
 clean :
 	rm $(objects)
-
