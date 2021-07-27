@@ -69,8 +69,6 @@ void show_buf(const int *);
  * To handle these instructions [ '+', '-', '>', '<', '.', ',' ] it copies the C programming language, while for the last 
  * two instructions [ '[', ']' ] it uses an array to store the start index of the loop and the end of it to jump over the code.
  * @param $0 : the brainfuck code
- * @param $1 : the buffer used
- * @param $2 : the variable used as index for the buffer
  * @return
  */
 void interpreter(const char *);

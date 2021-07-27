@@ -162,14 +162,20 @@ char *bfile_reader(FILE *file) {
   char c;
   if (file)
     while((c = fgetc(file)) != EOF)
-      if (c == LEFT_ARROW || c == RIGHT_ARROW
-                          || c == INCREMENT
-                          || c == DECREMENT
-                          || c == START_WHILE
-                          || c == END_WHILE
-                          || c == INPUT
-                          || c == OUTPUT)
-      code[i++] = c;
+      switch(c) {
+        case LEFT_ARROW:
+        case RIGHT_ARROW:
+        case INCREMENT:
+        case DECREMENT:
+        case START_WHILE:
+        case END_WHILE:
+        case INPUT:
+        case OUTPUT:
+          code[i++] = c;
+          break;
+        default:
+          continue;
+      }
 
   code[i] = '\0';
 
