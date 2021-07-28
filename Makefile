@@ -1,7 +1,7 @@
 CC = clang
 RM = rm -rf
 INCLUDE = include
-CFLAGS = -Wall -Wpedantic -Wextra -O3 -I$(INCLUDE)
+CFLAGS = -Wall -Wpedantic -Wextra -std=c11 -O3 -I$(INCLUDE)
 
 OBJSDIR = bin
 SRCSDIR = src
