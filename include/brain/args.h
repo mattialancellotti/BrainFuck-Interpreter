@@ -3,9 +3,9 @@
 
 //ARGS_OPTIONS
 #define VERSION (1)
-#define GET_HELP    2
-#define GET_INFO    3
-#define GET_STATS   4
+#define HELP    (2)
+#define INFO    (3)
+#define STATS   (4) // don't know what this is
 
 /* TODO: update this doc
  * Handles the arguments by reading them and saving the 'state' in a variable processed by the main function.

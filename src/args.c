@@ -17,10 +17,10 @@ const char *handle_args(int * const actions, const int argc,
       if (argv[i][0] == '-' && strlen(argv[i]) > 1) {
          switch(argv[i][1]) {
          case 'i':
-            *actions |= GET_INFO;
+            *actions |= INFO;
             break;
          case 'h':
-            *actions |= GET_HELP;
+            *actions |= HELP;
             break;
          case 'v':
             *actions |= VERSION;

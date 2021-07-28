@@ -21,18 +21,18 @@ int main(int argc, char **argv)
    int actions = 0;
    const char *file_name = NULL;
 
+   /* This doesn't make any sense */
    if ((file_name = handle_args(&actions, argc, argv)) == NULL && !actions)
       return EXIT_FAILURE;
 
+   /* Checking for flags like -h (help message) or -v (version message) */
    check_bit(actions, VERSION, print_console_version);
-   /*
-   if (actions&1)
-      print_console_version();
-      */
+   check_bit(actions, HELP,    print_console_help);
 
-   if (actions&2)
-      print_console_help();
+   if (!file_name)
+      return EXIT_SUCCESS;
 
+   /* TODO mmap instead of fopen */
    f = fopen(file_name, "r");
    code = bfile_reader(f);
    if (!code)
@@ -46,7 +46,7 @@ clean:
       fclose(f);
    f = NULL;
 
-   return 0;
+   return EXIT_SUCCESS;
 }
 
 void interpreter(const char *code_) {
