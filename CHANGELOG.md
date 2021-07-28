@@ -32,3 +32,4 @@ BRAINFUCK INTERPRETER
   - New project structure
   - Makefile updated
   - .gitignore added
+  - Arguments handling simplified
