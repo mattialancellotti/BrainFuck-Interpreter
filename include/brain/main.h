@@ -1,9 +1,11 @@
 #ifndef BRAINFUCK_H
 #define BRAINFUCK_H
 
+#include <stdio.h>
+
 #include "args.h"
 
-#define VERSION 3.5
+#define PROGRAM_VERSION (3.5)
 #define DATE_OF_RELEASE "2020/01/13"
 #define BUFFER 30000
 
@@ -49,13 +51,13 @@ void print_args_warn_errs(const int);
 void print_console_help(void);
 
 /*
- * Prints the last version and the date of release
+ * Prints the last version and the date of release.
  * @return
  */
 void print_console_version(void);
 
 /*
- * Prints every value contained in the cell of the buffer
+ * Prints every value contained in the cell of the buffer.
  * @param $0 : the buffer
  * @return
  */
@@ -65,9 +67,12 @@ void show_buf(const int *);
 //brainfuck
 
 /*
- * Uses a switch-case to understand which key is the current one and act consequently.
- * To handle these instructions [ '+', '-', '>', '<', '.', ',' ] it copies the C programming language, while for the last 
- * two instructions [ '[', ']' ] it uses an array to store the start index of the loop and the end of it to jump over the code.
+ * Uses a switch-case to understand which key is the current one and act
+ * consequently. To handle these instructions [ '+', '-', '>', '<', '.', ',' ]
+ * it copies the C programming language, while for the last two instructions
+ * [ '[', ']' ] it uses an array to store the start index of the loop and the
+ * end of it to jump over the code.
+ *
  * @param $0 : the brainfuck code
  * @return
  */

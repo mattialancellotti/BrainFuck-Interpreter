@@ -1,52 +1,50 @@
-#include <stdio.h>
+#include <string.h>
 
+#include <brain/args.h>
 #include <brain/main.h>
 #include <brain/mem.h>
 
-int main(const int argc, char **argv) {
+#define simple_usage(); printf("bf [-h|-v|-i] <brainfuck source>\n");
+#define check_bit(flags, flag, action); if (flags&flag) action##();
+
+int main(int argc, char **argv)
+{
    FILE *f = NULL;
-   struct settings *settings_f = NULL;
    char *code = NULL;
 
-	if (argc < 2) {
-		print_console_help();
-		goto exit;
-	}
+   /* If the user invokes the program with no argument exits successfully */
+   if (argc == 1) {
+      simple_usage();
+      return EXIT_SUCCESS;
+   }
 
-	settings_f = handle_args(argc, argv);
+   int actions = 0;
+   const char *file_name = NULL;
 
-	if (settings_f->args_errs_flags) {
-    printf("Errors during the handling of the arguments.. exiting.\n");
-		goto exit;
-	}
+   if ((file_name = handle_args(&actions, argc, argv)) == NULL && !actions)
+      return EXIT_FAILURE;
 
-	if (settings_f->flags&1)
-		print_console_version();
+   //check_bit(actions, VERSION, print_console_version);
+   if (actions&1)
+      print_console_version();
 
-	if (settings_f->flags&2)
-		print_console_help();
+   if (actions&2)
+      print_console_help();
 
-  if (!settings_f->finput)
-    goto clean;
+   f = fopen(file_name, "r");
+   code = bfile_reader(f);
+   if (!code)
+      goto clean;
 
-  f = fopen(settings_f->finput, "r");
-  code = bfile_reader(f);
-  if (!code)
-    goto clean;
-
-  printf("%s\n", code);
-	interpreter(code);
+   printf("%s\n", code);
+   interpreter(code);
 
 clean:
-  if (f)
-    fclose(f);
-  xfree_sett(settings_f);
+   if (f)
+      fclose(f);
+   f = NULL;
 
-exit:
-  f = NULL;
-  settings_f = NULL;
-
-	return 0;
+   return 0;
 }
 
 void interpreter(const char *code_) {
@@ -130,7 +128,8 @@ void print_console_help(void) {
 }
 
 void print_console_version(void) {
-	printf("BrainFuck interpreter, version %.1f, date of release %s\n", VERSION, DATE_OF_RELEASE);
+   printf("BrainFuck interpreter, version %.1f, date of release %s\n",
+         PROGRAM_VERSION, DATE_OF_RELEASE);
 }
 
 unsigned loop_counter(const char *code) {
