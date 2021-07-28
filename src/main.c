@@ -1,11 +1,11 @@
+#include <stdlib.h>
 #include <string.h>
 
 #include <brain/args.h>
 #include <brain/main.h>
-#include <brain/mem.h>
 
 #define simple_usage(); printf("bf [-h|-v|-i] <brainfuck source>\n");
-#define check_bit(flags, flag, action); if (flags&flag) action##();
+#define check_bit(flags, flag, action); if (flags&flag) action();
 
 int main(int argc, char **argv)
 {
@@ -24,9 +24,11 @@ int main(int argc, char **argv)
    if ((file_name = handle_args(&actions, argc, argv)) == NULL && !actions)
       return EXIT_FAILURE;
 
-   //check_bit(actions, VERSION, print_console_version);
+   check_bit(actions, VERSION, print_console_version);
+   /*
    if (actions&1)
       print_console_version();
+      */
 
    if (actions&2)
       print_console_help();

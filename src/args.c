@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include <brain/args.h>
-#include <brain/mem.h>
 
 /*
  * This function is not using getopt (see `man getopt.3`) because it would be
