@@ -1,10 +1,10 @@
-#BrainFuck Interpreter
+## BrainFuck Interpreter
 
 An esoteric programming language without real application.
 Use it only for fun.
 
 To compile
->>make
+make
 
 To clean objects
->>make clean
+make clean
