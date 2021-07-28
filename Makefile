@@ -6,9 +6,9 @@ CFLAGS = -Wall -Wpedantic -Wextra -std=c11 -O3 -I$(INCLUDE)
 OBJSDIR = bin
 SRCSDIR = src
 
-OBJS := $(addprefix $(OBJSDIR)/, mem.o args.o main.o)
-DEPS := $(patsubst %.o, %.d, $(OBJS))
 SRCS := $(wildcard src/*.c)
+OBJS := $(patsubst %.c, $(OBJSDIR)/%.o, $(notdir $(SRCS)))
+DEPS := $(patsubst %.c, %.d, $(SRCS))
 
 BINARY = bf
 
@@ -20,7 +20,7 @@ $(BINARY): | $(OBJSDIR) $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(BINARY)
 
 $(OBJSDIR):
-	@echo $(DEPS) - $(SRCS) - $(OBJS)
+	@echo $(DEPS) - $(SRCS) - $(OBJS) - $(basename $(SRCS))
 	@echo Creating $(abspath $(OBJSDIR))
 	@mkdir -p $(OBJSDIR)
 
