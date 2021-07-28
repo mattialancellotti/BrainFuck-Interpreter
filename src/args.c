@@ -1,38 +1,44 @@
+#include <string.h>
+#include <stdio.h>
+
 #include <brain/args.h>
 #include <brain/mem.h>
 
-struct settings *handle_args(const int argc, char **argv) {
-   char *file_input = NULL;
-   int flags=4, args_errs_flags=0;
+/*
+ * This function is not using getopt (see `man getopt.3`) because it would be
+ * non-sense for just 3/4 parameters without argument.
+ */
+const char *handle_args(int * const actions, const int argc,
+                        char **argv)
+{
+   const char *file_input = NULL;
 
+   /* Looping through all the arguments given to the program except its name */
    for (int i=1; i<argc; i++)
-      if (argv[i][0] == '-') {
-         if (strlen(argv[i]) > 1) {
-            switch(argv[i][1]) {
-            case 'i':
-               flags |= GET_INFO;
-               break;
-            case 'h':
-               flags |= GET_HELP;
-               break;
-            case 'v':
-          flags |= GET_VERSION;
-          break;
-        default:
-          args_errs_flags = 1;
-          break;
+      if (argv[i][0] == '-' && strlen(argv[i]) > 1) {
+         switch(argv[i][1]) {
+         case 'i':
+            *actions |= GET_INFO;
+            break;
+         case 'h':
+            *actions |= GET_HELP;
+            break;
+         case 'v':
+            *actions |= VERSION;
+            break;
+         default:
+            /* Warning the user and exiting */
+            printf("Unknown argument %s. Aborting..\n", argv[i]);
+            return NULL;
         }
-     } else
-       printf("Incomplete parameter %s.... Ignoring it.\n", argv[i]);
-
-    } else {
-      if (!file_input)
-        file_input = argv[i];
-      else {
-        printf("Multiple input files: %s - %s.", file_input, argv[i]);
-        args_errs_flags = 1;
+      } else {
+         if (file_input) {
+            printf("Unknown argument %s. Aborting..\n", argv[i]);
+            return NULL;
+         }
+         
+         file_input = argv[i];
       }
-    }
 
-	return sett_new(file_input, flags, args_errs_flags);
+   return file_input;
 }
