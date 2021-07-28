@@ -3,8 +3,9 @@ BRAIN F\*CK INTERPRETER
 
 * **BUGS**
     - Heap-overflow
+    - File-existance checks
 
-* **Features**
+* **To be implemented**
     - Update file reader with mmap
     - Clean the code
     - More documentation
