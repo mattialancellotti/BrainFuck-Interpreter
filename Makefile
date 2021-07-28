@@ -1,28 +1,36 @@
 CC = clang
 RM = rm -rf
+INCLUDE = include
+CFLAGS = -Wall -Wpedantic -Wextra -O3 -I$(INCLUDE)
 
-OBJS = mem.o args.o main.o
-SRCS = $(wildcard src/*)
+OBJSDIR = bin
+SRCSDIR = src
+
+OBJS := $(addprefix $(OBJSDIR)/, mem.o args.o main.o)
+DEPS := $(patsubst %.o, %.d, $(OBJS))
+SRCS := $(wildcard src/*.c)
+
 BINARY = bf
-
-CFLAGS = -Wall -Wpedantic -Wextra -O3
 
 ifdef DEBUG
   CFLAGS += -ggdb -fsanitize=address,undefined
 endif
 
-$(BINARY) : $(OBJS)
+$(BINARY): | $(OBJSDIR) $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(BINARY)
 
-mem.o : mem.c mem.h main.h args.h
-	$(CC) $(CLFAGS) -c mem.c
+$(OBJSDIR):
+	@echo $(DEPS) - $(SRCS) - $(OBJS)
+	@echo Creating $(abspath $(OBJSDIR))
+	@mkdir -p $(OBJSDIR)
 
-args.o : args.c args.h mem.h
-	$(CC) $(CLFAGS) -c args.c
+$(OBJSDIR)/%.o: $(SRCSDIR)/%.c $(OBJSDIR)/%.d $(INCLUDE)/brain/%.h
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-main.o : main.c main.h args.h mem.h
-	$(CC) $(CLFAGS) -c main.c
+$(OBJSDIR)/%.d: $(SRCSDIR)/%.c
+	$(CC) $(CFLAGS) -MM -MT '$(patsubst %.c, %(OBJSDIR)/%.o, $(notdir $<))' $< -MF $@
+
 
 .PHONY : clean
 clean :
-	$(RM) $(OBJS)
+	$(RM) $(BINARY) $(OBJSDIR)
