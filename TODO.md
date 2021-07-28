@@ -8,6 +8,5 @@ BRAIN F\*CK INTERPRETER
     - Update file reader with mmap
     - Clean the code
     - More documentation
-    - Update the Makefile
     - Signal handling
     - Optimize the interpreter
