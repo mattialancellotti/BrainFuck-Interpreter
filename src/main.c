@@ -10,19 +10,24 @@
 
 #define simple_usage(); printf("bf [-h|-v|-i] <brainfuck source>\n");
 #define check_bit(flags, flag, action); if (flags&flag) action();
+#define fatal_err(errno, status, err_msg); \
+   if (errno == status) { \
+      perror(err_msg); \
+      return EXIT_FAILURE; \
+   }
 
 int main(int argc, char **argv)
 {
-   char *code = NULL;
-
    /* If the user invokes the program with no argument exits successfully */
    if (argc == 1) {
       simple_usage();
       return EXIT_SUCCESS;
    }
 
-   int actions = 0;
+   struct stat file_info;
    const char *file_name = NULL;
+   char *code = NULL;
+   int actions = 0;
 
    /* TODO This doesn't make any sense */
    if ((file_name = handle_args(&actions, argc, argv)) == NULL && !actions)
@@ -36,18 +41,12 @@ int main(int argc, char **argv)
       return EXIT_SUCCESS;
 
    /* Opening the file in read-only mode and returning the file descriptor. */
-   int fd;
-   if ((fd = open(file_name, O_RDONLY)) == -1) {
-      perror("Error while opening the file.");
-      return EXIT_FAILURE;
-   }
+   int fd = open(file_name, O_RDONLY);
+   fatal_err(fd, -1, "Couldn't open the specified file");
 
    /* Reading this file's infos. */
-   struct stat file_info;
-   if (fstat(fd, &file_info) == -1) {
-      perror("Error while reading the file's info.");
-      return EXIT_FAILURE;
-   }
+   int err = fstat(fd, &file_info);
+   fatal_err(err, -1, "Couldn't get the info needed");
 
    /* 
     * Mapping the file to a virtual address and this specific function is only
@@ -56,26 +55,35 @@ int main(int argc, char **argv)
     * See `man mmap(2)` for more infos.
     */
    code = mmap(NULL, file_info.st_size, PROT_READ, MAP_SHARED, fd, 0);
-
-   /* TODO mmap instead of fopen */
-   //f = fopen(file_name, "r");
-   //code = bfile_reader(f);
-   if (!code)
-      goto clean;
+   fatal_err(code, NULL, "Couldn't read the specified file");
 
    printf("%s\n", code);
    interpreter(code);
 
-clean:
-
    if (code)
-      munmap(code, file_info.st_size);
+      fatal_err(munmap(code, file_info.st_size), -1,"Couldn't unmap the file");
+
    return EXIT_SUCCESS;
 }
 
 void print_console_version(void) {
    printf("BrainFuck interpreter, version %.1f, date of release %s\n",
          PROGRAM_VERSION, DATE_OF_RELEASE);
+}
+
+void print_console_help(void) {
+   printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
+   printf("\t-h, --help    : display this message\n");
+   printf("\t-v, --version : print the version of the program\n");
+   printf("\n\n~~~~ BRAINFUCK LANGUAGE ~~~~\n");
+   printf("\t'+' increment by one the current position pointed\n");
+   printf("\t'-' decrement by one the current position pointed\n");
+   printf("\t'>' move the pointer to the next position\n");
+   printf("\t'<' move the pointer to the previous position\n");
+   printf("\t'.' print the number stored in the current position pointed\n");
+   printf("\t',' accept an input\n");
+   printf("\t'[' while the value of the position pointed is not zero\n");
+   printf("\t']' end of the loop\n\n");
 }
 
 void interpreter(const char *code_) {
@@ -143,20 +151,6 @@ void show_buf(const int *buf) {
 	printf("\n");
 }
 
-void print_console_help(void) {
-   printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
-   printf("\t-h, --help    : display this message\n");
-   printf("\t-v, --version : print the version of the program\n");
-   printf("\n\n~~~~ BRAINFUCK LANGUAGE ~~~~\n");
-   printf("\t'+' increment by one the current position pointed\n");
-   printf("\t'-' decrement by one the current position pointed\n");
-   printf("\t'>' move the pointer to the next position\n");
-   printf("\t'<' move the pointer to the previous position\n");
-   printf("\t'.' print the number stored in the current position pointed\n");
-   printf("\t',' accept an input\n");
-   printf("\t'[' while the value of the position pointed is not zero\n");
-   printf("\t']' end of the loop\n\n");
-}
 
 
 unsigned loop_counter(const char *code) {
