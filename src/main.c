@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <brain/args.h>
 #include <brain/main.h>
 
@@ -9,7 +13,6 @@
 
 int main(int argc, char **argv)
 {
-   FILE *f = NULL;
    char *code = NULL;
 
    /* If the user invokes the program with no argument exits successfully */
@@ -21,7 +24,7 @@ int main(int argc, char **argv)
    int actions = 0;
    const char *file_name = NULL;
 
-   /* This doesn't make any sense */
+   /* TODO This doesn't make any sense */
    if ((file_name = handle_args(&actions, argc, argv)) == NULL && !actions)
       return EXIT_FAILURE;
 
@@ -32,9 +35,31 @@ int main(int argc, char **argv)
    if (!file_name)
       return EXIT_SUCCESS;
 
+   /* Opening the file in read-only mode and returning the file descriptor. */
+   int fd;
+   if ((fd = open(file_name, O_RDONLY)) == -1) {
+      perror("Error while opening the file.");
+      return EXIT_FAILURE;
+   }
+
+   /* Reading this file's infos. */
+   struct stat file_info;
+   if (fstat(fd, &file_info) == -1) {
+      perror("Error while reading the file's info.");
+      return EXIT_FAILURE;
+   }
+
+   /* 
+    * Mapping the file to a virtual address and this specific function is only
+    * supported in unix/linux OSes. Needs to be unmapped.
+    * 
+    * See `man mmap(2)` for more infos.
+    */
+   code = mmap(NULL, file_info.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
    /* TODO mmap instead of fopen */
-   f = fopen(file_name, "r");
-   code = bfile_reader(f);
+   //f = fopen(file_name, "r");
+   //code = bfile_reader(f);
    if (!code)
       goto clean;
 
@@ -42,11 +67,15 @@ int main(int argc, char **argv)
    interpreter(code);
 
 clean:
-   if (f)
-      fclose(f);
-   f = NULL;
 
+   if (code)
+      munmap(code, file_info.st_size);
    return EXIT_SUCCESS;
+}
+
+void print_console_version(void) {
+   printf("BrainFuck interpreter, version %.1f, date of release %s\n",
+         PROGRAM_VERSION, DATE_OF_RELEASE);
 }
 
 void interpreter(const char *code_) {
@@ -115,24 +144,20 @@ void show_buf(const int *buf) {
 }
 
 void print_console_help(void) {
-	printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
-	printf("\t-h, --help    : display this message\n");
-	printf("\t-v, --version : print the version of the program\n");
-	printf("\n\n~~~~ BRAINFUCK LANGUAGE ~~~~\n");
-	printf("\t'+' increment by one the current position pointed\n");
-	printf("\t'-' decrement by one the current position pointed\n");
-	printf("\t'>' move the pointer to the next position\n");
-	printf("\t'<' move the pointer to the previous position\n");
-	printf("\t'.' print the number stored in the current position pointed\n");
-	printf("\t',' accept an input\n");
-	printf("\t'[' while the value of the position pointed is not zero\n");
-	printf("\t']' end of the loop\n\n");
+   printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
+   printf("\t-h, --help    : display this message\n");
+   printf("\t-v, --version : print the version of the program\n");
+   printf("\n\n~~~~ BRAINFUCK LANGUAGE ~~~~\n");
+   printf("\t'+' increment by one the current position pointed\n");
+   printf("\t'-' decrement by one the current position pointed\n");
+   printf("\t'>' move the pointer to the next position\n");
+   printf("\t'<' move the pointer to the previous position\n");
+   printf("\t'.' print the number stored in the current position pointed\n");
+   printf("\t',' accept an input\n");
+   printf("\t'[' while the value of the position pointed is not zero\n");
+   printf("\t']' end of the loop\n\n");
 }
 
-void print_console_version(void) {
-   printf("BrainFuck interpreter, version %.1f, date of release %s\n",
-         PROGRAM_VERSION, DATE_OF_RELEASE);
-}
 
 unsigned loop_counter(const char *code) {
   unsigned loops = 0, max_loops=0;
