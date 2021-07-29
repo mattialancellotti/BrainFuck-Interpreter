@@ -11,3 +11,4 @@ BRAIN F\*CK INTERPRETER
     - More documentation
     - Signal handling
     - Optimize the interpreter
+    - Windows port
