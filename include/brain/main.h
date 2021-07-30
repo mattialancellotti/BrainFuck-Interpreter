@@ -5,20 +5,15 @@
 
 #include "args.h"
 
-#define PROGRAM_VERSION (3.5)
-#define DATE_OF_RELEASE "2020/01/13"
+#define PROGRAM_VERSION (3.3)
+#define DATE_OF_RELEASE "2021/07/30"
 #define BUFFER 30000
 
-//CODE WARNINGS {{
 #define MOVING_OUT_OF_BUFFER 1
-// }}
-//
-//CODE ERRORS {{
+
 #define NO_END_LOOOP  1
 #define NO_START_LOOP 2
-//}}
 
-//CODE TOKENS {{
 #define RIGHT_ARROW '>'
 #define LEFT_ARROW  '<'
 #define INCREMENT   '+'
@@ -27,7 +22,6 @@
 #define OUTPUT      '.'
 #define START_WHILE '['
 #define END_WHILE   ']'
-// }}
 
 /*
  * Used to interpret the flags passed and to notify the used if there are errors or warnings in the *code*
