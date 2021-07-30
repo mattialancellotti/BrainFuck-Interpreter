@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* 
+ * The following three libraries are needed to use mmap as an efficient way
+ * to read files. sys/stat.h and fcntl.h both provide useful methods to get
+ * a file's properties.
+ */
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -29,8 +34,8 @@ int main(int argc, char **argv)
    char *code = NULL;
    int actions = 0;
 
-   /* TODO This doesn't make any sense */
-   if ((file_name = handle_args(&actions, argc, argv)) == NULL && !actions)
+   file_name = handle_args(&actions, argc, argv);
+   if (actions == -1)
       return EXIT_FAILURE;
 
    /* Checking for flags like -h (help message) or -v (version message) */
@@ -66,12 +71,14 @@ int main(int argc, char **argv)
    return EXIT_SUCCESS;
 }
 
-void print_console_version(void) {
+void print_console_version(void)
+{
    printf("BrainFuck interpreter, version %.1f, date of release %s\n",
          PROGRAM_VERSION, DATE_OF_RELEASE);
 }
 
-void print_console_help(void) {
+void print_console_help(void)
+{
    printf("~~~~ BRAINFUCK INTERPRETER ~~~~\n");
    printf("\t-h, --help    : display this message\n");
    printf("\t-v, --version : print the version of the program\n");
@@ -87,71 +94,69 @@ void print_console_help(void) {
 }
 
 void interpreter(const char *code_) {
-  const unsigned len = loop_counter(code_), c_len = strlen(code_); 
-  register unsigned loop_index = 0;
-  int loops[len];
-  char code[c_len];
+   const unsigned len = loop_counter(code_), c_len = strlen(code_); 
+   register unsigned loop_index = 0;
+   int loops[len];
+   char code[c_len];
 
-  char buffer[BUFFER] = { 0 };
-  register char *ptr = buffer;
+   char buffer[BUFFER] = { 0 };
+   register char *ptr = buffer;
 
-  memset(loops, 0, len);
-  memcpy(code, code_, c_len);
+   memset(loops, 0, len);
+   memcpy(code, code_, c_len);
 
-	for (unsigned i=0; i<c_len; i++)
-		switch(code[i]) {
-		case '+':
-      ++(*ptr);
-      break;
-		case '-':
-      --(*ptr);
-			break;
-		case '>':
-      if (ptr == buffer+(BUFFER-1))
-        ptr = buffer;
-      else
-        ++ptr;
-			break;
-		case '<':
-      if (ptr == buffer)
-        ptr = buffer+(BUFFER-1);
-      else
-        --ptr;
-			break;
-		case '.':
-      putchar(*ptr);
-			break;
-		case ',':
-      *ptr = getchar();
-			break;
-		case '[':
-      if (loops[loop_index])
-        ++loop_index;
-      loops[loop_index] = i;
+   for (unsigned i=0; i<c_len; i++)
+      switch(code[i]) {
+      case '+':
+         ++(*ptr);
+         break;
+      case '-':
+         --(*ptr);
+	 break;
+      case '>':
+         if (ptr == buffer+(BUFFER-1))
+            ptr = buffer;
+         else
+            ++ptr;
+	 break;
+      case '<':
+         if (ptr == buffer)
+            ptr = buffer+(BUFFER-1);
+         else
+            --ptr;
+	 break;
+      case '.':
+         putchar(*ptr);
+	 break;
+      case ',':
+         *ptr = getchar();
+	 break;
+      case '[':
+         if (loops[loop_index])
+            ++loop_index;
+         loops[loop_index] = i;
 
-			break;
-		case ']':
-      if (*ptr)
-        i = loops[loop_index];
-      else {
-        loops[loop_index] = 0;
-        if (loop_index)
-          --loop_index;
-      }
-		  break;
-		default:
-			break;
-		} 
+	 break;
+      case ']':
+         if (*ptr)
+            i = loops[loop_index];
+         else {
+            loops[loop_index] = 0;
+            if (loop_index)
+               --loop_index;
+         }
+	 break;
+      default:
+	 break;
+      } 
 }
 
 void show_buf(const int *buf) {
-	for (int i=0; i<BUFFER; i++)
-		printf("%3d ", buf[i]);
+   for (int i=0; i<BUFFER; i++)
+      printf("%3d ", buf[i]);
 
-	printf("\n");
+   printf("\n");
 }
-
-
 
 unsigned loop_counter(const char *code) {
   unsigned loops = 0, max_loops=0;
@@ -169,6 +174,7 @@ unsigned loop_counter(const char *code) {
   return max_loops;
 }
 
+/* TODO migrate this from FILE to mmap */
 char *bfile_reader(FILE *file) {
   fseek(file, 0L, SEEK_END);
   const unsigned size = ftell(file);
