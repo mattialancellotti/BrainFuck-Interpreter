@@ -34,3 +34,5 @@ BRAINFUCK INTERPRETER
   - 28072021 .gitignore added
   - 28072021 Arguments handling simplified
   - 29072021 `mmap` branch created, experimenting with mmap
+  - 30072021 mmap is being used to open files 
+  - 30072021 file existance checking
