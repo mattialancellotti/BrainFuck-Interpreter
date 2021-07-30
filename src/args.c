@@ -16,10 +16,6 @@ const char *handle_args(int * const actions, const int argc,
    for (int i=1; i<argc; i++)
       if (argv[i][0] == '-' && strlen(argv[i]) > 1) {
          switch(argv[i][1]) {
-         case 'i':
-            *actions |= INFO;
-            break;
-         case 'h':
             *actions |= HELP;
             break;
          case 'v':
@@ -28,11 +24,13 @@ const char *handle_args(int * const actions, const int argc,
          default:
             /* Warning the user and exiting */
             printf("Unknown argument %s. Aborting..\n", argv[i]);
+            *actions = -1;
             return NULL;
         }
       } else {
          if (file_input) {
             printf("Unknown argument %s. Aborting..\n", argv[i]);
+            *actions = -1;
             return NULL;
          }
          
