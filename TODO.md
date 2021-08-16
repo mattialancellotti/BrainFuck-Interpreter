@@ -6,6 +6,6 @@ BRAIN F\*CK INTERPRETER
 
 * **To be implemented**
     - Cleaner code
-    - More documentation
+    - More documentation (TODOs, comments)
     - Signal handling
     - Windows port (Not likely)
