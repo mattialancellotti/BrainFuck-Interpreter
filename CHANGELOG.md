@@ -36,3 +36,5 @@ BRAINFUCK INTERPRETER
   - 29072021 `mmap` branch created, experimenting with mmap
   - 30072021 mmap is being used to open files 
   - 30072021 file existance checking
+  - 16082021 No more memory leaks
+  - 16082021 Buffer-Overflows when executing code fixed
