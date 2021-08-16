@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /* 
  * The following three libraries are needed to use mmap as an efficient way
@@ -15,6 +16,17 @@
 
 #define simple_usage(); printf("bf [-h|-v|-i] <brainfuck source>\n");
 #define check_bit(flags, flag, action); if (flags&flag) action();
+#define do_if(condition, action); \
+   if (condition) { \
+      action;       \
+   }
+
+#define warn_user(errno, status, err_msg, action); \
+   if (errno == status) { \
+      perror(err_msg);    \
+      action;             \
+   }
+
 #define fatal_err(errno, status, err_msg); \
    if (errno == status) { \
       perror(err_msg); \
@@ -29,10 +41,10 @@ int main(int argc, char **argv)
       return EXIT_SUCCESS;
    }
 
-   struct stat file_info;
+   struct stat fprop;
    const char *file_name = NULL;
    char *code = NULL;
-   int actions = 0;
+   int actions = 0, err;
 
    file_name = handle_args(&actions, argc, argv);
    if (actions == -1)
@@ -50,8 +62,8 @@ int main(int argc, char **argv)
    fatal_err(fd, -1, "Couldn't open the specified file");
 
    /* Reading this file's infos. */
-   int err = fstat(fd, &file_info);
-   fatal_err(err, -1, "Couldn't get the info needed");
+   err = fstat(fd, &fprop);
+   warn_user(err, -1, "Couldn't get the info needed", goto main_exit);
 
    /* 
     * Mapping the file to a virtual address and this specific function is only
@@ -59,14 +71,15 @@ int main(int argc, char **argv)
     * 
     * See `man mmap(2)` for more infos.
     */
-   code = mmap(NULL, file_info.st_size, PROT_READ, MAP_SHARED, fd, 0);
-   fatal_err(code, NULL, "Couldn't read the specified file");
+   code = mmap(NULL, fprop.st_size, PROT_READ, MAP_SHARED, fd, 0);
+   warn_user(code, NULL, "Couldn't read the specified file", goto main_exit);
 
    printf("%s\n", code);
    interpreter(code);
 
-   if (code)
-      fatal_err(munmap(code, file_info.st_size), -1,"Couldn't unmap the file");
+main_exit:
+   do_if((fd != -1), close(fd));
+   do_if((code != NULL), fatal_err(munmap(code, fprop.st_size), -1, "munmap"));
 
    return EXIT_SUCCESS;
 }
