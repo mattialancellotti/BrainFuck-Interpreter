@@ -1,18 +1,9 @@
 #ifndef BRAINFUCK_H
 #define BRAINFUCK_H
 
-#include <stdio.h>
-
-#include "args.h"
-
 #define PROGRAM_VERSION (3.3)
-#define DATE_OF_RELEASE "2021/07/30"
-#define BUFFER 30000
-
-#define MOVING_OUT_OF_BUFFER 1
-
-#define NO_END_LOOOP  1
-#define NO_START_LOOP 2
+#define DATE_OF_RELEASE "2021/08/12"
+#define BUFFER (30000)
 
 #define RIGHT_ARROW '>'
 #define LEFT_ARROW  '<'
@@ -78,13 +69,5 @@ void interpreter(const char *);
  * @return   : the number of loops
  */
 unsigned loop_counter(const char *); 
-
-/*
- * It checks if the user should pay attentio at what he writes
- *
- * @param $0 : the code
- * @return   : code_t
- */
-char *bfile_reader(FILE *);
 
 #endif
