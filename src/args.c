@@ -16,6 +16,7 @@ const char *handle_args(int * const actions, const int argc,
    for (int i=1; i<argc; i++)
       if (argv[i][0] == '-' && strlen(argv[i]) > 1) {
          switch(argv[i][1]) {
+         case 'h':
             *actions |= HELP;
             break;
          case 'v':
