@@ -59,11 +59,11 @@ int main(int argc, char **argv)
 
    /* Opening the file in read-only mode and returning the file descriptor. */
    int fd = open(file_name, O_RDONLY);
-   fatal_err(fd, -1, "Couldn't open the specified file");
+   fatal_err(fd, -1, "open");
 
    /* Reading this file's infos. */
    err = fstat(fd, &fprop);
-   warn_user(err, -1, "Couldn't get the info needed", goto main_exit);
+   warn_user(err, -1, "fstat", goto main_exit);
 
    /* 
     * Mapping the file to a virtual address and this specific function is only
@@ -72,15 +72,17 @@ int main(int argc, char **argv)
     * See `man mmap(2)` for more infos.
     */
    code = mmap(NULL, fprop.st_size, PROT_READ, MAP_SHARED, fd, 0);
-   warn_user(code, NULL, "Couldn't read the specified file", goto main_exit);
+   warn_user(code, NULL, "mmap", goto main_exit);
 
-   printf("%s\n", code);
+   //printf("%s\n", code);
    interpreter(code);
 
 main_exit:
-   do_if((fd != -1), close(fd));
+   /* Cleaning resources */
+   do_if((fd != -1), fatal_err(close(fd), -1, "close"));
    do_if((code != NULL), fatal_err(munmap(code, fprop.st_size), -1, "munmap"));
 
+   /* Exit successfully */
    return EXIT_SUCCESS;
 }
 
@@ -106,19 +108,18 @@ void print_console_help(void)
    printf("\t']' end of the loop\n\n");
 }
 
-void interpreter(const char *code_) {
-   const unsigned len = loop_counter(code_), c_len = strlen(code_); 
+void interpreter(const char *code) {
+   const unsigned loops_count = loop_counter(code);
+   const unsigned code_len = strlen(code);
    register unsigned loop_index = 0;
-   int loops[len];
-   char code[c_len];
+   int loops[loops_count];
 
    char buffer[BUFFER] = { 0 };
    register char *ptr = buffer;
 
-   memset(loops, 0, len);
-   memcpy(code, code_, c_len);
+   memset(loops, 0, loops_count);
 
-   for (unsigned i=0; i<c_len; i++)
+   for (unsigned i=0; i<code_len; i++)
       switch(code[i]) {
       case '+':
          ++(*ptr);
@@ -145,7 +146,7 @@ void interpreter(const char *code_) {
          *ptr = getchar();
 	 break;
       case '[':
-         if (loops[loop_index])
+         if (loops[loop_index] > 0)
             ++loop_index;
          loops[loop_index] = i;
 
@@ -160,8 +161,9 @@ void interpreter(const char *code_) {
          }
 	 break;
       default:
+         /* Ignoring the unrecognised character */
 	 break;
-      } 
+      }
 }
 
 void show_buf(const int *buf) {
@@ -172,56 +174,11 @@ void show_buf(const int *buf) {
 }
 
 unsigned loop_counter(const char *code) {
-  unsigned loops = 0, max_loops=0;
+  unsigned loops = 0;
 
-  for (int i=0; code[i]; i++) {
+  for (int i=0; code[i]; i++)
     if (code[i] == '[')
       loops++;
-    else if (code[i] == ']') {
-      if (loops > max_loops)
-        max_loops = loops;
-      loops--;
-    }
-  }
 
-  return max_loops;
-}
-
-/* TODO migrate this from FILE to mmap */
-char *bfile_reader(FILE *file) {
-  fseek(file, 0L, SEEK_END);
-  const unsigned size = ftell(file);
-  unsigned new_size;
-  char code[size];
-  fseek(file, 0L, SEEK_SET);
-
-  char *new_code = NULL;
-  int i = 0;
-
-  char c;
-  if (file)
-    while((c = fgetc(file)) != EOF)
-      switch(c) {
-        case LEFT_ARROW:
-        case RIGHT_ARROW:
-        case INCREMENT:
-        case DECREMENT:
-        case START_WHILE:
-        case END_WHILE:
-        case INPUT:
-        case OUTPUT:
-          code[i++] = c;
-          break;
-        default:
-          continue;
-      }
-
-  code[i] = '\0';
-
-  new_size = strlen(code);
-  new_code = malloc(sizeof(char)*new_size);
-
-  memcpy(new_code, code, new_size);
-
-  return new_code;
+  return loops;
 }
