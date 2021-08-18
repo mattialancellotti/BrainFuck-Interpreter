@@ -76,7 +76,6 @@ int main(int argc, char **argv)
    code = mmap(NULL, fprop.st_size, PROT_READ, MAP_SHARED, fd, 0);
    warn_user(code, NULL, "mmap", goto main_exit);
 
-   //printf("%s\n", code);
    interpreter(code);
 
 main_exit:
@@ -116,6 +115,7 @@ void interpreter(const char *code) {
    register unsigned loop_index = 0;
    int loops[loops_count];
 
+   /* Creating the buffer used by the interpreter (a stack) */
    char buffer[BUFFER] = { 0 };
    register char *ptr = buffer;
 
@@ -123,37 +123,37 @@ void interpreter(const char *code) {
 
    for (unsigned i=0; i<code_len; i++)
       switch(code[i]) {
-      case '+':
+      case INCREMENT:
          ++(*ptr);
          break;
-      case '-':
+      case DECREMENT:
          --(*ptr);
 	 break;
-      case '>':
+      case FORWARD:
          if (ptr == buffer+(BUFFER-1))
             ptr = buffer;
          else
             ++ptr;
 	 break;
-      case '<':
+      case BACKWARD:
          if (ptr == buffer)
             ptr = buffer+(BUFFER-1);
          else
             --ptr;
 	 break;
-      case '.':
+      case OUTPUT:
          putchar(*ptr);
 	 break;
-      case ',':
+      case INPUT:
          *ptr = getchar();
 	 break;
-      case '[':
+      case START_WHILE:
          if (loops[loop_index] > 0)
             ++loop_index;
          loops[loop_index] = i;
 
 	 break;
-      case ']':
+      case END_WHILE:
          if (*ptr)
             i = loops[loop_index];
          else {
@@ -178,8 +178,9 @@ void show_buf(const int *buf) {
 unsigned loop_counter(const char *code) {
   unsigned loops = 0;
 
+  /* Searching for loops */
   for (int i=0; code[i]; i++)
-    if (code[i] == '[')
+    if (code[i] == START_WHILE)
       loops++;
 
   return loops;

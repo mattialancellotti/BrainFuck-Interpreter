@@ -5,8 +5,8 @@
 #define DATE_OF_RELEASE "2021/08/12"
 #define BUFFER (30000)
 
-#define RIGHT_ARROW '>'
-#define LEFT_ARROW  '<'
+#define FORWARD     '>'
+#define BACKWARD    '<'
 #define INCREMENT   '+'
 #define DECREMENT   '-'
 #define INPUT       ','
@@ -47,9 +47,6 @@ void print_console_version(void);
  * @return
  */
 void show_buf(const int *);
-
-
-//brainfuck
 
 /*
  * Uses a switch-case to understand which key is the current one and act
