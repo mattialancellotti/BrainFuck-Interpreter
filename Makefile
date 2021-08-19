@@ -2,27 +2,33 @@ CC = clang
 RM = rm -rf
 INCLUDE = include
 CFLAGS = -Wall -Wpedantic -Wextra -std=c11 -O3 -I$(INCLUDE)
+BINARY = brain
 
-OBJSDIR = bin
+OBJSDIR = objs
 SRCSDIR = src
+BINDIR  = bin
+INSTDIR = /usr/local/stow/$(BINARY)
 
 SRCS := $(wildcard src/*.c)
 OBJS := $(patsubst %.c, $(OBJSDIR)/%.o, $(notdir $(SRCS)))
 DEPS := $(patsubst %.c, %.d, $(SRCS))
 
-BINARY = bf
 
 ifdef DEBUG
   CFLAGS += -ggdb -fsanitize=address,undefined
 endif
 
-$(BINARY): | $(OBJSDIR) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(BINARY)
+$(BINARY): | $(BINDIR) $(OBJSDIR) $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(BINDIR)/$(BINARY)
+
+$(BINDIR):
+	@echo Creating $(abspath $(BINDIR))
+	mkdir -p $(BINDIR)
 
 $(OBJSDIR):
 	@echo $(DEPS) - $(SRCS) - $(OBJS) - $(basename $(SRCS))
 	@echo Creating $(abspath $(OBJSDIR))
-	@mkdir -p $(OBJSDIR)
+	mkdir -p $(OBJSDIR)
 
 $(OBJSDIR)/%.o: $(SRCSDIR)/%.c $(OBJSDIR)/%.d $(INCLUDE)/brain/%.h
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -33,4 +39,11 @@ $(OBJSDIR)/%.d: $(SRCSDIR)/%.c
 
 .PHONY : clean
 clean :
-	$(RM) $(BINARY) $(OBJSDIR)
+	$(RM) $(BINDIR) $(OBJSDIR)
+
+stow:
+	@echo Creating $(INSTDIR)
+	mkdir -p $(INSTDIR)
+	cp -r $(BINDIR) $(INSTDIR)
+	stow --dir=/usr/local/stow --target=/usr/local --stow $(BINARY)
+	@echo Installation finished
