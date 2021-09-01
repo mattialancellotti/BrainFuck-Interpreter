@@ -38,3 +38,4 @@ BRAINFUCK INTERPRETER
   - 30072021 file existance checking
   - 16082021 No more memory leaks
   - 16082021 Buffer-Overflows when executing code fixed
+  - 19082021 Makefile installation using stow
