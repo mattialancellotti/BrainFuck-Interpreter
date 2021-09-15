@@ -37,7 +37,7 @@ $(OBJSDIR)/%.d: $(SRCSDIR)/%.c
 	$(CC) $(CFLAGS) -MM -MT '$(patsubst %.c, %(OBJSDIR)/%.o, $(notdir $<))' $< -MF $@
 
 
-.PHONY : clean
+.PHONY : clean stow unstow
 clean :
 	$(RM) $(BINDIR) $(OBJSDIR)
 
@@ -47,3 +47,7 @@ stow:
 	cp -r $(BINDIR) $(INSTDIR)
 	stow --dir=/usr/local/stow --target=/usr/local --stow $(BINARY)
 	@echo Installation finished
+
+unstow:
+	stow --dir=/usr/local/stow --target=/usr/local --delete $(BINARY)
+	@echo Successfully uninstalled
